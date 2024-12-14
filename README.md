@@ -1,2 +1,8 @@
 # svd2rusty
-Conver SML SVD files into constants in rust files 
+Convert XML SVD files into constants in rust files 
+
+# Usage 
+
+```
+cargo run STM32F405.svd  | rustfmt
+```
