@@ -1,7 +1,11 @@
 [package]
 name = "svd2rusty"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+authors = ["Cullen Jennings <fluffy@iii.ca>"]
+readme = "README.md"
+repository = "git@github.com:fluffy/svd2rusty.git"
+license = "BSD-2-Clause"
 
 [dependencies]
 xml-rs = "0.8"
