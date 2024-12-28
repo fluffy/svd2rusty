@@ -76,9 +76,12 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         wanted_peripheral = true;
                     }
                     if content == "RCC" {
-                        wanted_peripheral = true;
+                       wanted_peripheral = true;
                     }
                     if content == "USART6" {
+                        wanted_peripheral = true;
+                    }
+                    if content == "TIM1" {
                         wanted_peripheral = true;
                     }
 
@@ -86,6 +89,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         let mut name = content.clone();
                         if name == "USART6" {
                             name = "USART".to_string();
+                        }
+                        if name == "TIM1" {
+                            name = "TIM_ADV".to_string();
                         }
                         println!("pub mod {} {{", name);
                     }
