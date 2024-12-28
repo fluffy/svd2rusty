@@ -71,18 +71,21 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
             }
             XmlEvent::Characters(content) => {
                 if inside_peripheral && (!wanted_peripheral) && (!inside_register) && inside_name {
-                    //println!("//FOUND Peripheral: {}", content);
-                    if content == "FLASH" {
-                        wanted_peripheral = true;
-                    }
-                    if content == "RCC" {
-                       wanted_peripheral = true;
-                    }
-                    if content == "USART6" {
-                        wanted_peripheral = true;
-                    }
-                    if content == "TIM1" {
-                        wanted_peripheral = true;
+                    if true {
+                        if content == "FLASH" {
+                            wanted_peripheral = true;
+                        }
+                        if content == "RCC" {
+                            wanted_peripheral = true;
+                        }
+                        if content == "USART6" {
+                            wanted_peripheral = true;
+                        }
+                        if content == "TIM1" {
+                            wanted_peripheral = true;
+                        }
+                    } else {
+                        println!("//FOUND Peripheral: {}", content);
                     }
 
                     if wanted_peripheral {
