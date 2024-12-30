@@ -6,3 +6,4 @@ Convert XML SVD files into constants in rust files
 ```
 cargo run STM32F405.svd  | rustfmt
 ```
+ 
