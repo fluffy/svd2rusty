@@ -84,6 +84,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         if content == "TIM1" {
                             wanted_peripheral = true;
                         }
+                        if content == "TIM2" {
+                            wanted_peripheral = true;
+                        }
                     } else {
                         println!("//FOUND Peripheral: {}", content);
                     }
@@ -95,6 +98,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         }
                         if name == "TIM1" {
                             name = "TIM_ADV".to_string();
+                        }
+                        if name == "TIM2" {
+                            name = "TIM_GEN".to_string();
                         }
                         println!("pub mod {} {{", name);
                     }
