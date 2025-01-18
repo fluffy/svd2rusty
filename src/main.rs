@@ -136,7 +136,7 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         && content != "SET"
                         && content != "CLEARED" {
                         //println!("FOUND Field: {}", content);
-                        println!("        pub const {} : u32 ", content);
+                        println!("        pub const {} : u8 ", content);
                     }
                 }
 
