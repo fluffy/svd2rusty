@@ -3,7 +3,11 @@ use std::fs::File;
 use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 
-fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn parse_xml_with_xml_rs(
+    file_path: &str,
+    wanted: &[String],
+    pass: u8,
+) -> Result<(), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
@@ -15,6 +19,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
     let mut inside_enumerated_value = false;
     let mut inside_name = false;
     let mut inside_bit_offset = false;
+    let mut inside_base_ddress = false;
+    let mut reg_name = "".to_string();
+
 
     let parser = EventReader::new(reader);
 
@@ -26,6 +33,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                 // Handle start elements
                 if name.local_name == "peripheral" {
                     inside_peripheral = true;
+                }
+                if name.local_name == "baseAddress" {
+                    inside_base_ddress = true;
                 }
                 if name.local_name == "register" {
                     inside_register = true;
@@ -55,14 +65,26 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
             XmlEvent::EndElement { name } => {
                 if name.local_name == "peripheral" {
                     if wanted_peripheral {
-                        println!("}}");
+                        if pass == 1 {
+                            println!("}}");
+                        }
+                        if pass == 2 {
+                            println!("}}");
+                        }
                     }
                     inside_peripheral = false;
                     wanted_peripheral = false;
                 }
+
+                if name.local_name == "baseAddress" {
+                    inside_base_ddress = false;
+                }
+
                 if name.local_name == "register" {
                     if wanted_peripheral {
-                        println!("    }}");
+                        if pass == 1 {
+                            println!("    }}");
+                        }
                     }
                     inside_register = false;
                 }
@@ -112,7 +134,9 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                             wanted_peripheral = true; // make false for STM32F072
                         }
                     } else {
-                        println!("//FOUND Peripheral: {}", content);
+                        if pass == 1 {
+                            println!("//FOUND Peripheral: {}", content);
+                        }
                     }
 
                     if wanted_peripheral {
@@ -129,10 +153,28 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         if name == "TIM1" {
                             name = "TIM_ADV".to_string();
                         }
+
                         if name == "TIM2" {
                             name = "TIM_GEN".to_string();
                         }
                         println!("pub mod {} {{", name);
+
+
+                        reg_name = name.to_ascii_uppercase().clone() + "Reg";
+
+                        if pass == 1 {
+                            println!("pub mod {} {{", name);
+                        }
+                        if pass == 2 {
+                            println!("");
+                            println!("#[repr(C)]");
+                            println!("pub struct {} {{", reg_name);
+                        }
+                        if pass == 3 {
+                            println!("");
+                            println!("pub const {} :  *mut {} ", name, reg_name);
+                        }
+
                     }
                 }
                 if inside_peripheral
@@ -142,7 +184,12 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                     && inside_name
                 {
                     //println!("FOUND Register: {}", content);
-                    println!("    pub mod {} {{", content.to_lowercase());
+                    if pass == 1 {
+                        println!("    pub mod {} {{", content.to_ascii_lowercase());
+                    }
+                    if pass == 2 {
+                        println!("    pub {} : u32 ,", content.to_ascii_lowercase());
+                    }
                 }
                 if inside_peripheral
                     && wanted_peripheral
@@ -156,8 +203,10 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                         && content != "CLEAR"
                         && content != "SET"
                         && content != "CLEARED" {
-                        //println!("FOUND Field: {}", content);
-                        println!("        pub const {} : u8 ", content);
+                      //println!("FOUND Field: {}", content);
+                      if pass == 1 {
+                        println!("        pub const {} : u32 ", content);
+                      }
                     }
                 }
 
@@ -168,9 +217,22 @@ fn parse_xml_with_xml_rs(file_path: &str) -> Result<(), Box<dyn std::error::Erro
                     && inside_bit_offset
                 {
                     //println!("FOUND Offset: {}", content);
-                    println!("            = {};", content);
+
                     //inside_field = false;
+
+                    if pass == 1 {
+                        println!("            = {};", content);
+                    }
+
                 }
+
+                if inside_peripheral && wanted_peripheral && inside_base_ddress {
+                    //println!("FOUND Offset: {}", content);
+                    if pass == 3 {
+                        println!(" = {} as *mut {};", content , reg_name);
+                    }
+                }
+
                 //println!("Text: {}", content);
             }
             _ => (), // Ignore other events
@@ -188,7 +250,8 @@ fn main() {
         std::process::exit(1);
     }
 
-    let file_path = &args[1];
+    let file_path: &str = &args[1];
+    let wanted = &args[2..];
 
     println!("// DO NOT EDIT. This was generated by svd2rusty");
     println!("//! This module provides definitions for various hardware registers and their fields.");
@@ -197,7 +260,15 @@ fn main() {
     println!("#![allow(non_snake_case)]");
     println!("#![allow(non_upper_case_globals)]");
 
-    if let Err(err) = parse_xml_with_xml_rs(file_path) {
+    if let Err(err) = parse_xml_with_xml_rs(file_path, wanted, 1) {
+        eprintln!("Error: {}", err);
+    }
+
+    if let Err(err) = parse_xml_with_xml_rs(file_path, wanted, 2) {
+        eprintln!("Error: {}", err);
+    }
+
+    if let Err(err) = parse_xml_with_xml_rs(file_path, wanted, 3) {
         eprintln!("Error: {}", err);
     }
 }
