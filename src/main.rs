@@ -115,7 +115,30 @@ fn parse_xml_with_xml_rs(
                     && (!inside_register)
                     && inside_name
                 {
-                    if true {
+                    for w in wanted {
+                        // skip the - ones on pass 3
+                        if w.starts_with('-') {
+                            if pass == 3 {
+                                continue;
+                            }
+                            if content == w[1..].to_string() {
+                                wanted_peripheral = true;
+                            }
+                        }
+                        if w.starts_with('+') {
+                            if pass != 3 {
+                                continue;
+                            }
+                            if content == w[1..].to_string() {
+                                wanted_peripheral = true;
+                            }
+                        }
+                        if content == *w {
+                            wanted_peripheral = true;
+                        }
+                    }
+
+                    if false {
                         if content == "FLASH" {
                             wanted_peripheral = true;
                         }
@@ -138,8 +161,10 @@ fn parse_xml_with_xml_rs(
                         if content == "TIM2" {
                             wanted_peripheral = true; // make false for STM32F072
                         }
-                    } else {
-                        if pass == 1 {
+                    }
+
+                    if false {
+                        if pass == 3 {
                             println!("//FOUND Peripheral: {}", content);
                         }
                     }
@@ -147,6 +172,9 @@ fn parse_xml_with_xml_rs(
                     if wanted_peripheral {
                         let mut name = content.clone();
                         if name == "USART1" {
+                            name = "USART".to_string();
+                        }
+                        if name == "USART2" {
                             name = "USART".to_string();
                         }
                         if name == "USART6" {
@@ -166,6 +194,7 @@ fn parse_xml_with_xml_rs(
                         reg_name = name.to_ascii_uppercase().clone() + "Reg";
 
                         if pass == 1 {
+                            println!("");
                             println!("pub mod {} {{", name);
                         }
                         if pass == 2 {
@@ -263,6 +292,7 @@ fn main() {
     println!("#![allow(unused)]");
     println!("#![allow(non_snake_case)]");
     println!("#![allow(non_upper_case_globals)]");
+
 
     if let Err(err) = parse_xml_with_xml_rs(file_path, wanted, 1) {
         eprintln!("Error: {}", err);
