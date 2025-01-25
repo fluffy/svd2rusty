@@ -22,6 +22,8 @@ fn parse_xml_with_xml_rs(
     let mut inside_base_ddress = false;
     let mut reg_name = "".to_string();
 
+    let mut last_name   = "BAD_NAME".to_string();
+
     let parser = EventReader::new(reader);
 
     for event in parser {
@@ -97,7 +99,7 @@ fn parse_xml_with_xml_rs(
                 }
                 if name.local_name == "enumeratedValue" {
 
-                    //inside_enumerated_value= false;
+                    inside_enumerated_value= false;
                 }
                 if name.local_name == "name" {
                     inside_name = false;
@@ -229,15 +231,26 @@ fn parse_xml_with_xml_rs(
                     && inside_name
                     && !inside_enumerated_value
                 {
-                    if content != "Enabled"
-                        && content != "ENABLED"
-                        && content != "CLEAR"
-                        && content != "SET"
-                        && content != "CLEARED"
+                    if true
+                    // && content != "Enabled"
+                       // && content != "ENABLED"
+                       // && content != "CLEAR"
+                       // && content != "SET"
+                       // && content != "CLEARED"
+                       // && content != "MODE"
+                       // && content != "OUTPUTTYPE"
+                       // && content != "OUTPUTSPEED"
+                       // && content != "PULLCONFIG"
+                       // && content != "OUTPUTVALUE"
+                       // && content != "RESET"
+                       // && content != "LOCK"
+                       // && content != "LOCKON"
+                       // && content != "ALTFUNCTION"
                     {
                         //println!("FOUND Field: {}", content);
                         if pass == 1 {
-                            println!("        pub const {} : u32 ", content);
+                            last_name = content.clone();
+                            //println!("        pub const {} : u8 ", content);
                         }
                     }
                 }
@@ -253,6 +266,7 @@ fn parse_xml_with_xml_rs(
                     //inside_field = false;
 
                     if pass == 1 {
+                        println!("        pub const {} : u8 ",  last_name );
                         println!("            = {};", content);
                     }
                 }
