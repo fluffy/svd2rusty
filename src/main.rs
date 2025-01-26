@@ -159,13 +159,15 @@ fn parse_xml_with_xml_rs(
 
                 //println!("End Element: {}", name.local_name);
             }
-            XmlEvent::Characters(content) => {
+            XmlEvent::Characters(mut content) => {
                 if inside_peripheral
                     && (!inside_interrupt)
                     && (!wanted_peripheral)
                     && (!inside_register)
                     && inside_name
                 {
+                    content = content.to_ascii_uppercase();
+
                     for w in wanted {
                         // skip the - ones on pass 3
                         if w.starts_with('-') {
