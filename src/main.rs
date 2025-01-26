@@ -3,6 +3,12 @@ use std::fs::File;
 use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 
+//use std::num;
+
+//use num_traits::Num;
+
+use convert_case::{Case, Casing};
+
 fn parse_xml_with_xml_rs(
     file_path: &str,
     wanted: &[String],
@@ -19,10 +25,15 @@ fn parse_xml_with_xml_rs(
     let mut inside_enumerated_value = false;
     let mut inside_name = false;
     let mut inside_bit_offset = false;
+    let mut inside_address_offset = false;
     let mut inside_base_ddress = false;
     let mut reg_name = "".to_string();
 
-    let mut last_name   = "BAD_NAME".to_string();
+    let mut last_name = "BAD_NAME".to_string();
+    let mut address_offset: i32 = 0;
+    let mut prev_address_offset: i32 = 0;
+    let mut reserved: i32 = 0;
+    let mut register_name = "bad".to_string();
 
     let parser = EventReader::new(reader);
 
@@ -34,6 +45,7 @@ fn parse_xml_with_xml_rs(
                 // Handle start elements
                 if name.local_name == "peripheral" {
                     inside_peripheral = true;
+                    reserved = 1;
                 }
                 if name.local_name == "baseAddress" {
                     inside_base_ddress = true;
@@ -56,6 +68,9 @@ fn parse_xml_with_xml_rs(
                 }
                 if name.local_name == "bitOffset" {
                     inside_bit_offset = true;
+                }
+                if name.local_name == "addressOffset" {
+                    inside_address_offset = true;
                 }
 
                 //println!("Start Element: {}", name.local_name);
@@ -88,6 +103,38 @@ fn parse_xml_with_xml_rs(
                         }
                     }
                     inside_register = false;
+
+                    if inside_peripheral && wanted_peripheral && (!inside_field) && (pass == 2) {
+                        //println!("// ADDRESS prv={} curr={}", prev_address_offset,address_offset);
+
+                        if (address_offset != 0 )  && (prev_address_offset + 4 > address_offset) {
+                            println!("// BAD INPUT expected addr {} but got {}", prev_address_offset + 4, address_offset);
+                        }
+
+                        while prev_address_offset + 4 < address_offset {
+                            println!("    reserved{} : u32 ,", reserved);
+                            reserved += 1;
+                            prev_address_offset += 4;
+                        }
+
+                        if register_name.to_ascii_lowercase() == "ccmr1_input".to_string() {
+                            register_name = "ccmr1".to_string();
+                        }
+                        if register_name.to_ascii_lowercase() == "ccmr1_output".to_string() {
+                            register_name = "".to_string();
+                        }
+                        if register_name.to_ascii_lowercase() == "ccmr2_input".to_string() {
+                            register_name = "ccmr2".to_string();
+                        }
+                        if register_name.to_ascii_lowercase() == "ccmr2_output".to_string() {
+                            register_name = "".to_string();
+                        }
+
+                        if register_name.len() > 0 {
+                            println!("    pub {} : u32 ,", register_name.to_ascii_lowercase());
+                            prev_address_offset = address_offset;
+                        }
+                    }
                 }
 
                 if name.local_name == "interrupt" {
@@ -98,14 +145,16 @@ fn parse_xml_with_xml_rs(
                     inside_field = false;
                 }
                 if name.local_name == "enumeratedValue" {
-
-                    inside_enumerated_value= false;
+                    inside_enumerated_value = false;
                 }
                 if name.local_name == "name" {
                     inside_name = false;
                 }
                 if name.local_name == "bitOffset" {
                     inside_bit_offset = false;
+                }
+                if name.local_name == "addressOffset" {
+                    inside_address_offset = false;
                 }
 
                 //println!("End Element: {}", name.local_name);
@@ -141,31 +190,6 @@ fn parse_xml_with_xml_rs(
                     }
 
                     if false {
-                        if content == "FLASH" {
-                            wanted_peripheral = true;
-                        }
-                        if content == "RCC" {
-                            wanted_peripheral = true;
-                        }
-                        // if content == "USART1" { // use for STM32F072 ?????
-                        //     wanted_peripheral = true;
-                        //  }
-                        if content == "USART6" {
-                            // use for STM32F405
-                            wanted_peripheral = true;
-                        }
-                        if content == "DMA2" {
-                            wanted_peripheral = true;
-                        }
-                        if content == "TIM1" {
-                            wanted_peripheral = true; // make false for STM32F072
-                        }
-                        if content == "TIM2" {
-                            wanted_peripheral = true; // make false for STM32F072
-                        }
-                    }
-
-                    if false {
                         if pass == 3 {
                             println!("//FOUND Peripheral: {}", content);
                         }
@@ -192,8 +216,18 @@ fn parse_xml_with_xml_rs(
                         if name == "TIM2" {
                             name = "TIM_GEN".to_string();
                         }
+                        if name == "GPIOA" {
+                            name = "GPIO".to_string();
+                        }
+                        if name == "GPIOB" {
+                            name = "GPIO".to_string();
+                        }
+                        if name == "GPIOC" {
+                            name = "GPIO".to_string();
+                        }
 
-                        reg_name = name.to_ascii_uppercase().clone() + "Reg";
+                        //reg_name = name.to_ascii_uppercase().clone() + "Reg";
+                        reg_name = name.to_case(Case::Pascal).clone() + "Reg";
 
                         if pass == 1 {
                             println!("");
@@ -221,7 +255,7 @@ fn parse_xml_with_xml_rs(
                         println!("    pub mod {} {{", content.to_ascii_lowercase());
                     }
                     if pass == 2 {
-                        println!("    pub {} : u32 ,", content.to_ascii_lowercase());
+                        register_name = content.clone();
                     }
                 }
                 if inside_peripheral
@@ -231,26 +265,27 @@ fn parse_xml_with_xml_rs(
                     && inside_name
                     && !inside_enumerated_value
                 {
-                    if true
-                    // && content != "Enabled"
-                       // && content != "ENABLED"
-                       // && content != "CLEAR"
-                       // && content != "SET"
-                       // && content != "CLEARED"
-                       // && content != "MODE"
-                       // && content != "OUTPUTTYPE"
-                       // && content != "OUTPUTSPEED"
-                       // && content != "PULLCONFIG"
-                       // && content != "OUTPUTVALUE"
-                       // && content != "RESET"
-                       // && content != "LOCK"
-                       // && content != "LOCKON"
-                       // && content != "ALTFUNCTION"
-                    {
-                        //println!("FOUND Field: {}", content);
-                        if pass == 1 {
-                            last_name = content.clone();
-                            //println!("        pub const {} : u8 ", content);
+                    if pass == 1 {
+                        last_name = content.clone();
+                        //println!("        pub const {} : u8 ", content);
+                    }
+                }
+
+                if inside_peripheral
+                    && wanted_peripheral
+                    && inside_register
+                    && !inside_field
+                    && inside_address_offset
+                    && !inside_enumerated_value
+                {
+                    let v = i32::from_str_radix(content.trim_start_matches("0x"), 16);
+                    match v {
+                        Ok(val) => {
+                            address_offset = val;
+                            //println!("// ### parse {}, got {}", content, val);
+                        }
+                        Err(err) => {
+                            println!("// failed to parse {}, got {}", content, err);
                         }
                     }
                 }
@@ -266,7 +301,7 @@ fn parse_xml_with_xml_rs(
                     //inside_field = false;
 
                     if pass == 1 {
-                        println!("        pub const {} : u8 ",  last_name );
+                        println!("        pub const {} : u8 ", last_name);
                         println!("            = {};", content);
                     }
                 }
@@ -306,7 +341,6 @@ fn main() {
     println!("#![allow(unused)]");
     println!("#![allow(non_snake_case)]");
     println!("#![allow(non_upper_case_globals)]");
-
 
     if let Err(err) = parse_xml_with_xml_rs(file_path, wanted, 1) {
         eprintln!("Error: {}", err);
