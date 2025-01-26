@@ -17956,6 +17956,27 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
             </field>
           </fields>
         </register>
+
+         <register>
+          <name>RCR</name>
+          <displayName>RCR</displayName>
+          <description>repetition counter register</description>
+          <addressOffset>0x30</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x0000</resetValue>
+          <fields>
+            <field>
+              <name>REP</name>
+              <description>Repetition counter value</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+          </fields>
+        </register>
+
+        
+
         <register>
           <name>CCR1</name>
           <displayName>CCR1</displayName>
@@ -18024,65 +18045,8 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
             </field>
           </fields>
         </register>
-        <register>
-          <name>DCR</name>
-          <displayName>DCR</displayName>
-          <description>DMA control register</description>
-          <addressOffset>0x48</addressOffset>
-          <size>0x20</size>
-          <access>read-write</access>
-          <resetValue>0x0000</resetValue>
-          <fields>
-            <field>
-              <name>DBL</name>
-              <description>DMA burst length</description>
-              <bitOffset>8</bitOffset>
-              <bitWidth>5</bitWidth>
-            </field>
-            <field>
-              <name>DBA</name>
-              <description>DMA base address</description>
-              <bitOffset>0</bitOffset>
-              <bitWidth>5</bitWidth>
-            </field>
-          </fields>
-        </register>
-        <register>
-          <name>DMAR</name>
-          <displayName>DMAR</displayName>
-          <description>DMA address for full transfer</description>
-          <addressOffset>0x4C</addressOffset>
-          <size>0x20</size>
-          <access>read-write</access>
-          <resetValue>0x0000</resetValue>
-          <fields>
-            <field>
-              <name>DMAB</name>
-              <description>DMA register for burst
-              accesses</description>
-              <bitOffset>0</bitOffset>
-              <bitWidth>16</bitWidth>
-            </field>
-          </fields>
-        </register>
-        <register>
-          <name>RCR</name>
-          <displayName>RCR</displayName>
-          <description>repetition counter register</description>
-          <addressOffset>0x30</addressOffset>
-          <size>0x20</size>
-          <access>read-write</access>
-          <resetValue>0x0000</resetValue>
-          <fields>
-            <field>
-              <name>REP</name>
-              <description>Repetition counter value</description>
-              <bitOffset>0</bitOffset>
-              <bitWidth>8</bitWidth>
-            </field>
-          </fields>
-        </register>
-        <register>
+
+                <register>
           <name>BDTR</name>
           <displayName>BDTR</displayName>
           <description>break and dead-time register</description>
@@ -18143,6 +18107,50 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
             </field>
           </fields>
         </register>
+
+
+        <register>
+          <name>DCR</name>
+          <displayName>DCR</displayName>
+          <description>DMA control register</description>
+          <addressOffset>0x48</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x0000</resetValue>
+          <fields>
+            <field>
+              <name>DBL</name>
+              <description>DMA burst length</description>
+              <bitOffset>8</bitOffset>
+              <bitWidth>5</bitWidth>
+            </field>
+            <field>
+              <name>DBA</name>
+              <description>DMA base address</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>5</bitWidth>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>DMAR</name>
+          <displayName>DMAR</displayName>
+          <description>DMA address for full transfer</description>
+          <addressOffset>0x4C</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x0000</resetValue>
+          <fields>
+            <field>
+              <name>DMAB</name>
+              <description>DMA register for burst
+              accesses</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>16</bitWidth>
+            </field>
+          </fields>
+        </register>
+        
       </registers>
     </peripheral>
     <peripheral derivedFrom="TIM1">
