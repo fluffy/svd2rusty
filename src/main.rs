@@ -191,9 +191,9 @@ fn parse_xml_with_xml_rs(
                         }
                     }
 
-                    if false {
-                        if pass == 3 {
-                            println!("//FOUND Peripheral: {}", content);
+                    if true {
+                        if (wanted_peripheral == false ) && ( pass == 3 ) {
+                            println!("// Skipped peripheral: {}", content);
                         }
                     }
 
